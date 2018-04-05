@@ -3,130 +3,80 @@ import Backbone from 'Backbone';
 import $ from 'jQuery';
 import _ from 'underscore';
 
-$(function(){
+//Backbone model
+
+var Blog = Backbone.Model.extend({
+    defaults: {
+        author: '',
+        title: '',
+        url: ''
+    }
+})
+
+//Backbone collections
+
+var Blogs = Backbone.Collection.extend({});
+
+
+//instantiate two blogs
+
+var blog1 = new Blog({
+    author: "nabeel",
+    title: "title",
+    url: "url.com"
+});
+
+var blog2 = new Blog({
+    author: "arun",
+    title: "title",
+    url: "arun.com"
+});
+
+
+var blogs = new Blogs();
+
+
+//views
+
+var BlogView =  Backbone.View.extend({
+    model: new Blog(),
+    tagName: 'tr',
+    initialize: function(){
+        this.template = _.template($('.blogs-list-template').html());
+    },
+    render : function(){
+        this.$el.html(this.template(this.model.toJSON()));
+        return this;
+    }
     
-    // Create a model for the services
-    var Service = Backbone.Model.extend({
+});
 
-        // Will contain three attributes.
-        // These are their default values
+var BlogsView =  Backbone.View.extend({
+    model: blogs,
+    el: $('.blogs-list'),
+    initialize: function(){
+        this.model.on('add',this.render,this);
+    },
+    render: function(){
+        var self = this;
+        this.$el.html('');
+        _.each(this.model.toArray(),function(blog){
+            self.$el.append((new BlogView({model: blog})).render().$el);
+        })
+        return this;
+    }
+});
 
-        defaults:{
-            title: 'My service',
-            price: 100,
-            checked: false
-        },
-
-        // Helper function for checking/unchecking a service
-        toggle: function(){
-            debugger;
-            console.log(this);
-            this.set('checked', !this.get('checked'));
-        }
-    });
-
-
-     // Create a collection of services
-     var ServiceList = Backbone.Collection.extend({
-
-        // Will hold objects of the Service model
-        model: Service,
-
-        // Return an array only with the checked services
-        getChecked: function(){
-            console.log(this.where({checked:true}))
-            return this.where({checked:true});
-        }
-    });
+var blogsView = new BlogsView();
 
 
-    // Prefill the collection with a number of services.
-    var services = new ServiceList([
-        new Service({ title: 'web development', price: 200}),
-        new Service({ title: 'web design', price: 250}),
-        new Service({ title: 'photography', price: 100}),
-        new Service({ title: 'coffee drinking', price: 10})
-        // Add more here
-    ]);
-
-
-      // This view turns a Service model into HTML. Will create LI elements.
-      var ServiceView = Backbone.View.extend({
-        tagName: 'li',
-
-        events:{
-            'click': 'toggleService'
-        },
-
-        initialize: function(){
-
-            // Set up event listeners. The change backbone event
-            // is raised when a property changes (like the checked field)
-            console.log("initialize")
-            this.listenTo(this.model, 'change', this.render);
-        },
-
-        render: function(){
-
-            // Create the HTML
-
-            this.$el.html('<input type="checkbox" value="1" name="' + this.model.get('title') + '" /> ' + this.model.get('title') + '<span>Rs' + this.model.get('price') + '</span>');
-            this.$('input').prop('checked', this.model.get('checked'));
-
-            // Returning the object is a good practice
-            // that makes chaining possible
-            return this;
-        },
-
-        toggleService: function(){
-            this.model.toggle();
-        }
-    });
-     // The main view of the application
-     var App = Backbone.View.extend({
-
-        // Base the view on an existing element
-        el: $('#main'),
-
-        initialize: function(){
-
-            // Cache these selectors
-            this.total = $('#total span');
-            this.list = $('#services');
-
-            // Listen for the change event on the collection.
-            // This is equivalent to listening on every one of the 
-            // service objects in the collection.
-            this.listenTo(services, 'change', this.render);
-
-            // Create views for every one of the services in the
-            // collection and add them to the page
-
-            services.each(function(service){
-
-                var view = new ServiceView({ model: service });
-                this.list.append(view.render().el);
-
-            }, this);   // "this" is the context in the callback
-        },
-
-        render: function(){
-
-            // Calculate the total order amount by agregating
-            // the prices of only the checked elements
-
-            var total = 0;
-
-            _.each(services.getChecked(), function(elem){
-                total += elem.get('price');
-            });
-
-            // Update the total price
-            this.total.text('Rs.'+total);
-
-            return this;
-        }
-    });
-
-    new App();
+$(function(){
+    $(".add-blog").on("click",function(){
+        var blog = new Blog({
+            author: $('.author-input').val(),
+            title: $('.title-input').val(),
+            url: $('.url-input').val()
+        });
+        blogs.add(blog);
+    })
 })
