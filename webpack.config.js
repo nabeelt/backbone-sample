@@ -37,7 +37,7 @@ const config = {
               }
            },
       // html-loader
-      { test: /\.html$/, use: ['html-loader'] },
+       test: /\.html$/, use: ['html-loader'] },
       // sass-loader with sourceMap activated
       {
         test: /\.scss$/,
