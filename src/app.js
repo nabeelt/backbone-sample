@@ -34,7 +34,7 @@ var blog2 = new Blog({
 });
 
 
-var blogs = new Blogs();
+var blogs = new Blogs([blog1,blog2]);
 
 
 //views
@@ -108,7 +108,6 @@ var BlogsView =  Backbone.View.extend({
 });
 
 var blogsView = new BlogsView();
-
 
 $(function(){
     $(".add-blog").on("click",function(){
